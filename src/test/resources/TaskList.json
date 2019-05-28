@@ -1,0 +1,35 @@
+{
+  "scheduleStart": "2019-02-01",
+  "capacityPerUnitTime" : 8,
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Task A",
+      "duration": 6,
+      "dependencies": []
+    },
+    {
+      "id": 2,
+      "name": "Task B",
+      "duration": 3,
+      "dependencies": []
+    },
+    {
+      "id": 3,
+      "name": "Task C",
+      "duration": 5,
+      "dependencies": [
+        2
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Task C",
+      "duration": 3,
+      "dependencies": [
+        1,
+        3
+      ]
+    }
+  ]
+}
