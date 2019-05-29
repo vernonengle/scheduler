@@ -24,7 +24,7 @@
     },
     {
       "id": 4,
-      "name": "Task C",
+      "name": "Task D",
       "duration": 3,
       "dependencies": [
         1,

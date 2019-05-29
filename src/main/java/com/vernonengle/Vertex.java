@@ -1,25 +1,29 @@
 package com.vernonengle;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Vertex {
 
-    protected Set<Integer> activeTasks = new HashSet<>();
+    private Set<Integer> activeTasks = new HashSet<>();
     protected Set<Integer> remainingTasks = new HashSet<>();
     protected Set<Integer> startableTasks = new HashSet<>();
     protected Set<Integer> finishedTasks = new HashSet<>();
     protected Map<Integer, Integer> timeRemainingForTask = new HashMap<>();
+    protected Map<LocalDate, Set<Integer>> endDateForTask = new HashMap<>();
     protected Map<Integer, Task> taskMap = new HashMap<>();
     protected Integer currentTaskPoints = 0;
     protected Integer currentTimeUnit = 0;
-    private Integer maxPointsPerUnitTime = Integer.MAX_VALUE;
-    private Vertex previousVertex;
+    protected Integer maxPointsPerUnitTime = Integer.MAX_VALUE;
+    protected Vertex previousVertex;
+    protected LocalDate currentDate;
 
     public Vertex(Vertex sourceVertex) {
-        this.activeTasks.addAll(sourceVertex.activeTasks);
+        this.getActiveTasks().addAll(sourceVertex.getActiveTasks());
         this.remainingTasks.addAll(sourceVertex.remainingTasks);
         this.startableTasks.addAll(sourceVertex.startableTasks);
         this.finishedTasks.addAll(sourceVertex.finishedTasks);
@@ -32,9 +36,14 @@ public class Vertex {
                 .entrySet()
                 .stream()
                 .forEach( entrySet -> this.timeRemainingForTask.put(entrySet.getKey(), entrySet.getValue()));
+        sourceVertex.endDateForTask
+                .entrySet()
+                .stream()
+                .forEach( entrySet -> this.endDateForTask.put(entrySet.getKey(), entrySet.getValue()));
 
         this.currentTaskPoints = sourceVertex.currentTaskPoints;
         this.currentTimeUnit = sourceVertex.currentTimeUnit;
+        this.currentDate = sourceVertex.currentDate;
         this.setMaxPointsPerUnitTime(sourceVertex.getMaxPointsPerUnitTime());
     }
 
@@ -55,7 +64,7 @@ public class Vertex {
     }
 
     public boolean hasRemainingTasks() {
-        return !remainingTasks.isEmpty();
+        return !remainingTasks.isEmpty() || !activeTasks.isEmpty();
     }
 
     public Integer getCurrentTaskPoints() {
@@ -64,14 +73,6 @@ public class Vertex {
 
     public void setCurrentTaskPoints(Integer currentTaskPoints) {
         this.currentTaskPoints = currentTaskPoints;
-    }
-
-    public Integer getCurrentTimeUnit() {
-        return currentTimeUnit;
-    }
-
-    public void setCurrentTimeUnit(Integer currentTimeUnit) {
-        this.currentTimeUnit = currentTimeUnit;
     }
 
     public Integer getMaxPointsPerUnitTime() {
@@ -98,10 +99,6 @@ public class Vertex {
         return timeRemainingForTask;
     }
 
-    public void setTimeRemainingForTask(Map<Integer, Integer> timeRemainingForTask) {
-        this.timeRemainingForTask = timeRemainingForTask;
-    }
-
     public double getEdgeWeight() {
         return 0;
     }
@@ -118,9 +115,27 @@ public class Vertex {
     public String toString() {
         String remainingTasksString = "Remaining Tasks: " + remainingTasks + "\n";
         String finishedTasksString = "FinishedTasks Tasks: " + finishedTasks + "\n";
-        String activeTasksString = "Active Tasks: " + activeTasks + "\n";
+        String activeTasksString = "Active Tasks: " + getActiveTasks() + "\n";
         String capacityString = "Current Capacity: " + currentTaskPoints + "\n";
         String currentTimeSlotString = "Current timeSlot: " + currentTimeUnit + "\n";
-        return remainingTasksString + finishedTasksString + activeTasksString + capacityString + currentTimeSlotString;
+        return remainingTasksString
+                //+ finishedTasksString
+                + activeTasksString
+                + capacityString;
+                //+ currentTimeSlotString;
+    }
+
+    public Set<Integer> getActiveTasks() {
+        return activeTasks;
+    }
+
+
+    public boolean isEdge() {
+        return activeTasks.isEmpty() && remainingTasks.isEmpty();
+    }
+
+
+    public void setCurrentDate(LocalDate currentDate) {
+        this.currentDate = currentDate;
     }
 }

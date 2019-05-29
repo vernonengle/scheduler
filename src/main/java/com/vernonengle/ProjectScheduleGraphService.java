@@ -7,10 +7,12 @@ import org.jgrapht.traverse.DepthFirstIterator;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,35 +37,23 @@ public class ProjectScheduleGraphService {
                 .collect(Collectors.toMap(Task::getId, Function.identity()));
         topVertex.setTaskMap(taskMap);
         topVertex.setMaxPointsPerUnitTime(project.getCapacityPerUnitTime());
+        LocalDate startDate = LocalDate.parse(project.getScheduleStartString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        topVertex.setCurrentDate(startDate);
 
-        DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> projectGraph = buildProjectGraph(topVertex);
-
-        return projectGraph;
+        return buildProjectGraph(topVertex);
     }
 
-    public DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> buildProjectGraph(Vertex topVertex) throws InterruptedException {
+    public DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> buildProjectGraph(Vertex topVertex) {
         DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> projectGraph = new DefaultDirectedWeightedGraph<>(DefaultWeightedEdge.class);
         GraphBuilder<Vertex, DefaultWeightedEdge, DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge>> graphBuilder = new GraphBuilder<>(projectGraph);
-        LinkedBlockingQueue<Vertex> vertexQueue = new LinkedBlockingQueue<>();
-        vertexQueue.put(topVertex);
-
-        while (!vertexQueue.isEmpty()) {
-            Vertex currentVertex = vertexQueue.poll();
+        Stack<Vertex> vertexStack = new Stack<>();
+        vertexStack.push(topVertex);
+        while (!vertexStack.isEmpty()) {
+            Vertex currentVertex = vertexStack.pop();
             Vertex previousVertex = currentVertex.getPreviousVertex();
             if (previousVertex == null) {
-                System.out.println("==========================================");
-                System.out.println("Adding Vertex:");
-                System.out.println(currentVertex.toString());
-                System.out.println("==========================================");
                 graphBuilder.addVertex(currentVertex);
             } else {
-                System.out.println("==========================================");
-                System.out.println("Adding Edge Source:");
-                System.out.println(previousVertex.toString());
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                System.out.println("Adding Edge Target:");
-                System.out.println(currentVertex.toString());
-                System.out.println("==========================================");
                 graphBuilder.addEdge(previousVertex, currentVertex, currentVertex.getEdgeWeight());
             }
 
@@ -72,15 +62,12 @@ public class ProjectScheduleGraphService {
                 if (nextVertices.isEmpty()) {
                     Vertex timeProgressVertex = createTimeProgressVertex(currentVertex);
                     timeProgressVertex.setPreviousVertex(currentVertex);
-                    vertexQueue.put(timeProgressVertex);
+                    vertexStack.push(timeProgressVertex);
                 } else {
                     nextVertices.stream()
                             .forEach(vertex -> {
-                                try {
-                                    vertex.setPreviousVertex(currentVertex);
-                                    vertexQueue.put(vertex);
-                                } catch (InterruptedException e) {
-                                }
+                                vertex.setPreviousVertex(currentVertex);
+                                vertexStack.push(vertex);
                             });
                 }
             }
@@ -90,34 +77,65 @@ public class ProjectScheduleGraphService {
     }
 
     public List<NewTaskVertex> getNextStartableTasks(Vertex currentVertex) {
-        List<NewTaskVertex> startableTasks = currentVertex.getStartableTasks()
+        return currentVertex.getRemainingTasks()
                 .stream()
-                .map(id -> currentVertex.getTaskMap().get(id))
-                .filter(nextTask ->
-                        currentVertex.getMaxPointsPerUnitTime() >= currentVertex.getCurrentTaskPoints() + nextTask.getPoints()
-                )
+                .map(taskId -> currentVertex.taskMap.get(taskId))
+                .filter(task -> currentVertex.finishedTasks.containsAll(task.getDependencies()))
                 .map(task -> new NewTaskVertex(task, currentVertex))
                 .collect(Collectors.toList());
-        return startableTasks;
+//        List<NewTaskVertex> startableTasks = currentVertex.getStartableTasks()
+//                .stream()
+//                .map(id -> currentVertex.getTaskMap().get(id))
+//                .filter(nextTask ->
+//                        currentVertex.getMaxPointsPerUnitTime() >= currentVertex.getCurrentTaskPoints() + nextTask.getPoints()
+//                )
+//                .map(task -> new NewTaskVertex(task, currentVertex))
+//                .collect(Collectors.toList());
+//        return startableTasks;
     }
 
     public TimeProgressVertex createTimeProgressVertex(Vertex currentVertex) {
-        int timeOffset = currentVertex.getTimeRemainingForTask().values()
+        return currentVertex.endDateForTask
+                .entrySet()
                 .stream()
-                .mapToInt(Integer::intValue)
-                .min()
-                .orElse(0);
-        return new TimeProgressVertex(currentVertex, timeOffset);
+                .filter(endDateEntrySet ->
+                        endDateEntrySet.getValue()
+                                .stream()
+                                .anyMatch(id -> currentVertex.getActiveTasks().contains(id))
+                )
+                .map(Map.Entry::getKey)
+                .min(new Comparator<LocalDate>() {
+                    @Override
+                    public int compare(LocalDate o1, LocalDate o2) {
+                        return o1.compareTo(o2);
+                    }
+                })
+                .map(endDate -> new TimeProgressVertex(currentVertex, endDate))
+                .orElse(new TimeProgressVertex(currentVertex, 1));
     }
 
-    public Project assignSchedule(DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> projectGraph, Project project) {
-        Project scheduledProject = new Project();
-        LocalDate localDate = LocalDate.parse(project.getScheduleStartString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        project.setScheduleStartDate(localDate);
+    public List<Project> assignSchedule(DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> projectGraph, Project project) {
+        List<Project> projectSchedules = new ArrayList<>();
         DepthFirstIterator<Vertex, DefaultWeightedEdge> depthFirstIterator = new DepthFirstIterator<>(projectGraph);
-        while(depthFirstIterator.hasNext()) {
-            depthFirstIterator.next().toString();
+        Project scheduledProject = new Project();
+        LocalDate startDate = LocalDate.parse(project.getScheduleStartString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        scheduledProject.setScheduleStartDate(startDate);
+        Map<Integer, Task> taskMap = project.getTasks()
+                .stream()
+                .collect(Collectors.toMap(Task::getId, Function.identity()));
+        while (depthFirstIterator.hasNext()) {
+            Vertex vertex = depthFirstIterator.next();
+            if (vertex.isEdge()) {
+                scheduledProject.setTasks(new ArrayList<>(taskMap.values()));
+                projectSchedules.add(project);
+                scheduledProject = new Project();
+                scheduledProject.setScheduleStartDate(startDate);
+                taskMap = project.getTasks()
+                        .stream()
+                        .collect(Collectors.toMap(Task::getId, Function.identity()));
+            }
         }
-        return scheduledProject;
+        return projectSchedules;
     }
+
 }
