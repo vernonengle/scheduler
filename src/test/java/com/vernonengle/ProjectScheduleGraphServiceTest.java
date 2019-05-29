@@ -7,6 +7,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -15,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -49,6 +51,30 @@ public class ProjectScheduleGraphServiceTest {
         URL resource = classLoader.getResource("TaskList.json");
         Project project = jsonInputReader.getProjectDto(resource.getPath());
         DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> graph = projectScheduleGraphService.generateProjectScheduleGraph(project);
-        projectScheduleGraphService.assignSchedule(graph, project);
+        List<Project> projects = projectScheduleGraphService.assignSchedule(graph, project);
+        Project project1 = projects.get(0);
+        List<Task> tasks1 = project1.getTasks();
+        Assert.assertEquals(tasks1.get(0).getStartDate().toString(), "2019-02-01");
+        Assert.assertEquals(tasks1.get(1).getStartDate().toString(), "2019-02-01");
+        Assert.assertEquals(tasks1.get(2).getStartDate().toString(), "2019-02-04");
+        Assert.assertEquals(tasks1.get(3).getStartDate().toString(), "2019-02-09");
+
+        Assert.assertEquals(tasks1.get(0).getEndDate().toString(), "2019-02-07");
+        Assert.assertEquals(tasks1.get(1).getEndDate().toString(), "2019-02-04");
+        Assert.assertEquals(tasks1.get(2).getEndDate().toString(), "2019-02-09");
+        Assert.assertEquals(tasks1.get(3).getEndDate().toString(), "2019-02-12");
+
+        Project project2 = projects.get(1);
+        List<Task> tasks2 = project2.getTasks();
+        Assert.assertEquals(tasks2.get(0).getStartDate().toString(), "2019-02-01");
+        Assert.assertEquals(tasks2.get(1).getStartDate().toString(), "2019-02-01");
+        Assert.assertEquals(tasks2.get(2).getStartDate().toString(), "2019-02-04");
+        Assert.assertEquals(tasks2.get(3).getStartDate().toString(), "2019-02-09");
+
+        Assert.assertEquals(tasks2.get(0).getEndDate().toString(), "2019-02-07");
+        Assert.assertEquals(tasks2.get(1).getEndDate().toString(), "2019-02-04");
+        Assert.assertEquals(tasks2.get(2).getEndDate().toString(), "2019-02-09");
+        Assert.assertEquals(tasks2.get(3).getEndDate().toString(), "2019-02-12");
+
     }
 }
