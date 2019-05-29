@@ -1,12 +1,17 @@
 package com.vernonengle;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class NewTaskVertex extends Vertex {
 
     public NewTaskVertex(Task task, Vertex currentVertex) {
         super(currentVertex);
+        initializeFields(task);
+    }
+
+    private void initializeFields(Task task) {
         this.remainingTasks.remove(task.getId());
         this.startableTasks.remove(task.getId());
         this.getActiveTasks().add(task.getId());
@@ -22,5 +27,11 @@ public class NewTaskVertex extends Vertex {
         }
         taskIds.add(task.getId());
         endDateForTask.put(task.getEndDate(), taskIds);
+    }
+
+    public NewTaskVertex(List<Task> tasksToStart, Vertex currentVertex) {
+        super(currentVertex);
+        tasksToStart
+                .forEach(this::initializeFields);
     }
 }

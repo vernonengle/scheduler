@@ -63,18 +63,5 @@ public class ProjectScheduleGraphServiceTest {
         Assert.assertEquals(tasks1.get(1).getEndDate().toString(), "2019-02-04");
         Assert.assertEquals(tasks1.get(2).getEndDate().toString(), "2019-02-09");
         Assert.assertEquals(tasks1.get(3).getEndDate().toString(), "2019-02-12");
-
-        Project project2 = projects.get(1);
-        List<Task> tasks2 = project2.getTasks();
-        Assert.assertEquals(tasks2.get(0).getStartDate().toString(), "2019-02-01");
-        Assert.assertEquals(tasks2.get(1).getStartDate().toString(), "2019-02-01");
-        Assert.assertEquals(tasks2.get(2).getStartDate().toString(), "2019-02-04");
-        Assert.assertEquals(tasks2.get(3).getStartDate().toString(), "2019-02-09");
-
-        Assert.assertEquals(tasks2.get(0).getEndDate().toString(), "2019-02-07");
-        Assert.assertEquals(tasks2.get(1).getEndDate().toString(), "2019-02-04");
-        Assert.assertEquals(tasks2.get(2).getEndDate().toString(), "2019-02-09");
-        Assert.assertEquals(tasks2.get(3).getEndDate().toString(), "2019-02-12");
-
     }
 }

@@ -119,7 +119,7 @@ public class Vertex {
         String capacityString = "Current Capacity: " + currentTaskPoints + "\n";
         String currentTimeSlotString = "Current timeSlot: " + currentTimeUnit + "\n";
         return remainingTasksString
-                //+ finishedTasksString
+                + finishedTasksString
                 + activeTasksString
                 + capacityString;
                 //+ currentTimeSlotString;

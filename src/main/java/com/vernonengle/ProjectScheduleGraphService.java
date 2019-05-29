@@ -58,22 +58,31 @@ public class ProjectScheduleGraphService {
             }
 
             if (currentVertex.hasRemainingTasks()) {
-                List<NewTaskVertex> nextVertices = getNextStartableTasks(currentVertex);
-                if (nextVertices.isEmpty()) {
+                Vertex nextVertex = getNextStartableTasksSingleNode(currentVertex);
+                if (nextVertex == null) {
                     Vertex timeProgressVertex = createTimeProgressVertex(currentVertex);
                     timeProgressVertex.setPreviousVertex(currentVertex);
                     vertexStack.push(timeProgressVertex);
                 } else {
-                    nextVertices.stream()
-                            .forEach(vertex -> {
-                                vertex.setPreviousVertex(currentVertex);
-                                vertexStack.push(vertex);
-                            });
+                    nextVertex.setPreviousVertex(currentVertex);
+                    vertexStack.push(nextVertex);
                 }
             }
         }
 
         return graphBuilder.build();
+    }
+
+    private Vertex getNextStartableTasksSingleNode(Vertex currentVertex) {
+        List<Task> tasksToStart = currentVertex.getRemainingTasks()
+                .stream()
+                .map(taskId -> currentVertex.taskMap.get(taskId))
+                .filter(task -> currentVertex.finishedTasks.containsAll(task.getDependencies()))
+                .collect(Collectors.toList());
+        if (tasksToStart.isEmpty()) {
+            return null;
+        }
+        return new NewTaskVertex(tasksToStart, currentVertex);
     }
 
     public List<NewTaskVertex> getNextStartableTasks(Vertex currentVertex) {
