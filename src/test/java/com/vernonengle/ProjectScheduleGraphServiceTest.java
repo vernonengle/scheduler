@@ -24,7 +24,7 @@ public class ProjectScheduleGraphServiceTest {
 
 
     @Test
-    public void testVisualize() throws IOException, InterruptedException {
+    public void testVisualize() throws IOException {
         ProjectScheduleGraphService projectScheduleGraphService = new ProjectScheduleGraphService();
         JsonInputReader jsonInputReader = new JsonInputReader();
         ClassLoader classLoader = getClass().getClassLoader();
@@ -51,7 +51,7 @@ public class ProjectScheduleGraphServiceTest {
         URL resource = classLoader.getResource("TaskList.json");
         Project project = jsonInputReader.getProjectDto(resource.getPath());
         DefaultDirectedWeightedGraph<Vertex, DefaultWeightedEdge> graph = projectScheduleGraphService.generateProjectScheduleGraph(project);
-        List<Project> projects = projectScheduleGraphService.assignSchedule(graph, project);
+        List<Project> projects = projectScheduleGraphService.getProjectSchedules(graph, project);
         Project project1 = projects.get(0);
         List<Task> tasks1 = project1.getTasks();
         Assert.assertEquals(tasks1.get(0).getStartDate().toString(), "2019-02-01");

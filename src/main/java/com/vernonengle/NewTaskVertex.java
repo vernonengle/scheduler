@@ -6,16 +6,9 @@ import java.util.Set;
 
 public class NewTaskVertex extends Vertex {
 
-    public NewTaskVertex(Task task, Vertex currentVertex) {
-        super(currentVertex);
-        initializeFields(task);
-    }
-
     private void initializeFields(Task task) {
         this.remainingTasks.remove(task.getId());
-        this.startableTasks.remove(task.getId());
         this.getActiveTasks().add(task.getId());
-        this.timeRemainingForTask.put(task.getId(), task.getDuration());
         this.currentTaskPoints += task.getPoints();
         task.setStartDate(this.currentDate);
         task.setEndDate(this.currentDate.plusDays(task.getDuration()));

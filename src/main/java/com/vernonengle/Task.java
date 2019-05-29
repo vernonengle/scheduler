@@ -12,8 +12,6 @@ public class Task {
     private LocalDate endDate;
     private List<Integer> dependencies = new ArrayList<>();
     private Integer points = 0;
-    private Integer currentStartSlot = 0;
-    private Integer currentEndSlot = 0;
     private Integer progress = 0;
 
     public Integer getId() {
@@ -72,22 +70,6 @@ public class Task {
         this.points = points;
     }
 
-    public Integer getCurrentStartSlot() {
-        return currentStartSlot;
-    }
-
-    public void setCurrentStartSlot(Integer currentStartSlot) {
-        this.currentStartSlot = currentStartSlot;
-    }
-
-    public Integer getCurrentEndSlot() {
-        return currentEndSlot;
-    }
-
-    public void setCurrentEndSlot(Integer currentEndSlot) {
-        this.currentEndSlot = currentEndSlot;
-    }
-
     public Integer getProgress() {
         return progress;
     }
@@ -99,5 +81,15 @@ public class Task {
     public Integer progressTask(int timeOffset) {
         this.progress += timeOffset;
         return progress < duration ? progress : 0;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("Task: ").append(id).append("\n");
+        buffer.append("   ID        : ").append(name).append("\n");
+        buffer.append("   Start Date: ").append(startDate).append("\n");
+        buffer.append("   End Date  : ").append(endDate).append("\n");
+        return buffer.toString();
     }
 }

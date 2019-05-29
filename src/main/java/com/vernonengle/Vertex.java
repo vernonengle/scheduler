@@ -3,7 +3,6 @@ package com.vernonengle;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,9 +10,7 @@ public class Vertex {
 
     private Set<Integer> activeTasks = new HashSet<>();
     protected Set<Integer> remainingTasks = new HashSet<>();
-    protected Set<Integer> startableTasks = new HashSet<>();
     protected Set<Integer> finishedTasks = new HashSet<>();
-    protected Map<Integer, Integer> timeRemainingForTask = new HashMap<>();
     protected Map<LocalDate, Set<Integer>> endDateForTask = new HashMap<>();
     protected Map<Integer, Task> taskMap = new HashMap<>();
     protected Integer currentTaskPoints = 0;
@@ -25,17 +22,12 @@ public class Vertex {
     public Vertex(Vertex sourceVertex) {
         this.getActiveTasks().addAll(sourceVertex.getActiveTasks());
         this.remainingTasks.addAll(sourceVertex.remainingTasks);
-        this.startableTasks.addAll(sourceVertex.startableTasks);
         this.finishedTasks.addAll(sourceVertex.finishedTasks);
 
         sourceVertex.taskMap
                 .entrySet()
                 .stream()
                 .forEach( entrySet -> this.taskMap.put(entrySet.getKey(), entrySet.getValue()));
-        sourceVertex.timeRemainingForTask
-                .entrySet()
-                .stream()
-                .forEach( entrySet -> this.timeRemainingForTask.put(entrySet.getKey(), entrySet.getValue()));
         sourceVertex.endDateForTask
                 .entrySet()
                 .stream()
@@ -59,10 +51,6 @@ public class Vertex {
         this.remainingTasks = remainingTasks;
     }
 
-    public void setStartableTasks(Set<Integer> startableTasks) {
-        this.startableTasks = startableTasks;
-    }
-
     public boolean hasRemainingTasks() {
         return !remainingTasks.isEmpty() || !activeTasks.isEmpty();
     }
@@ -83,20 +71,12 @@ public class Vertex {
         this.maxPointsPerUnitTime = maxPointsPerUnitTime;
     }
 
-    public Set<Integer> getStartableTasks() {
-        return startableTasks;
-    }
-
     public Map<Integer, Task> getTaskMap() {
         return taskMap;
     }
 
     public void setTaskMap(Map<Integer, Task> taskMap) {
         this.taskMap = taskMap;
-    }
-
-    public Map<Integer, Integer> getTimeRemainingForTask() {
-        return timeRemainingForTask;
     }
 
     public double getEdgeWeight() {
@@ -117,12 +97,10 @@ public class Vertex {
         String finishedTasksString = "FinishedTasks Tasks: " + finishedTasks + "\n";
         String activeTasksString = "Active Tasks: " + getActiveTasks() + "\n";
         String capacityString = "Current Capacity: " + currentTaskPoints + "\n";
-        String currentTimeSlotString = "Current timeSlot: " + currentTimeUnit + "\n";
         return remainingTasksString
                 + finishedTasksString
                 + activeTasksString
                 + capacityString;
-                //+ currentTimeSlotString;
     }
 
     public Set<Integer> getActiveTasks() {
