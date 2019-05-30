@@ -2,7 +2,8 @@
 Task Scheduler
 
 Sample input:
-~~~~{
+~~~~
+{
   "scheduleStart": "2019-02-01",
   "tasks": [
     {
