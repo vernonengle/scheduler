@@ -40,7 +40,7 @@ Sample input:
 
 Run jar with 1st argument as the path to the schedule file
 ~~~~
-java -jar scheduling-1.0-SNAPSHOT.jar /Users/vernonengle/testscheduling/TaskList.json
+java -jar scheduling-1.0-SNAPSHOT.jar /path/to/file/TaskList.json
 ~~~~
 
 Sample output:
